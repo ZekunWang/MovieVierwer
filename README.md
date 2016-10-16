@@ -35,12 +35,13 @@ The following **additional** features are implemented:
 - [x] Control collection view with UICollectionViewFlowLayout
 - [x] Configurate auto layout
 - [x] Create app icon
+- [x] Infinite scrolling
 
 ## Video Walkthrough
 
 Here's a walkthrough of implemented user stories:
 
-![Video Walkthrough](MovieViewer_v1.gif)
+![Video Walkthrough](MovieViewer_v2.gif)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 

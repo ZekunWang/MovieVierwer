@@ -10,7 +10,7 @@ import UIKit
 import AFNetworking
 import MBProgressHUD
 
-class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UISearchBarDelegate {
+class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UISearchBarDelegate, UIScrollViewDelegate {
     
     static let VIEW_KEY = "view_key"
     
@@ -27,9 +27,11 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     var movies: [Movie]?
     var endpoint: String = ""
     var isList: Bool = true
+    var page: Int = 0
     
     var tableRefreshControl: UIRefreshControl!
     var collectionRefreshControl: UIRefreshControl!
+    var loadingMoreView:InfiniteScrollActivityView?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,6 +70,16 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         tableView.insertSubview(tableRefreshControl, at: 0)
         collectionView.insertSubview(collectionRefreshControl, at: 0)
         
+        // Set up Infinite Scroll loading indicator
+        let frame = CGRect(origin: CGPoint(x: 0,y :tableView.contentSize.height), size: CGSize(width: tableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight))
+        loadingMoreView = InfiniteScrollActivityView(frame: frame)
+        loadingMoreView!.isHidden = true
+        tableView.addSubview(loadingMoreView!)
+        
+        var insets = tableView.contentInset;
+        insets.bottom += InfiniteScrollActivityView.defaultHeight;
+        tableView.contentInset = insets
+        
         // UICollectionViewFlowLayout
         let flowLayout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         flowLayout.scrollDirection = .vertical
@@ -82,8 +94,16 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     }
     
     func refreshData() {
+        rawMovies = [Movie]()
+        page = 0
+        self.filterData(searchText: "")
+        loadDataOnPage()
+    }
+    
+    func loadDataOnPage() {
+        page += 1
         // now_playing API Call
-        let url = URL(string:AppConstants.baseUrl + "\(endpoint)?api_key=\(AppConstants.apiKey)")
+        let url = URL(string:AppConstants.baseUrl + "\(endpoint)?api_key=\(AppConstants.apiKey)&page=\(page)")
         let request = URLRequest(url: url!)
         let session = URLSession(
             configuration: URLSessionConfiguration.default,
@@ -107,21 +127,26 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                 UIView.animate(withDuration: 1.8, animations: {
                     self.errorView.alpha = 0
                 })
-
+                
             } else {
                 if let data = dataOrNil {
                     if let responseDictionary = try! JSONSerialization.jsonObject(with: data, options:[]) as? NSDictionary {
-                    
+                        
                         let rawMoviesDictionaries = responseDictionary["results"] as? [NSDictionary]
-                        self.rawMovies = Movie.mapFromMovieArray(dictionaries: rawMoviesDictionaries!)
-                        self.filterData(searchText: "")
-                        // Reload the data now that there is new data
-                        self.tableView.reloadData()
-                        self.collectionView.reloadData()
+                        let newMovies = Movie.mapFromMovieArray(dictionaries: rawMoviesDictionaries!)
+                        print("size of new movies: \(newMovies.count)")
+                        self.rawMovies?.append(contentsOf: newMovies)
+                        print("size of raw movies: \(self.rawMovies?.count)")
                     }
                 }
             }
             
+            // Update flag
+            self.isMoreDataLoading = false            
+            // Stop the loading indicator
+            self.loadingMoreView!.stopAnimating()
+            // Reload the data now that there is new data
+            self.filterData(searchText: self.searchText)
             // Hide HUD once the network request comes back (must be done on main UI thread)
             MBProgressHUD.hide(for: self.view, animated: true)
         });
@@ -184,7 +209,9 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         defaults.synchronize()
     }
     
+    var searchText = ""
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        self.searchText = searchText
         filterData(searchText: searchText)
     }
     
@@ -201,6 +228,31 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
             return movies!.count
         } else {
             return 0
+        }
+    }
+    
+    // MARK: - UIScrollViewDelegate
+    var isMoreDataLoading = false
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if (!isMoreDataLoading) {
+            // Calculate the position of one screen length before the bottom of the results
+            let currentView = isList ? tableView : collectionView
+            let scrollViewContentHeight = currentView.contentSize.height
+            let scrollOffsetThreshold = scrollViewContentHeight - currentView.bounds.size.height
+            
+            // When the user has scrolled past the threshold, start requesting
+            if(scrollView.contentOffset.y > scrollOffsetThreshold && currentView.isDragging) {
+                isMoreDataLoading = true
+                
+                // Update position of loadingMoreView, and start loading indicator
+                let frame = CGRect(origin: CGPoint(x: 0,y :tableView.contentSize.height), size: CGSize(width: tableView.bounds.size.width, height: InfiniteScrollActivityView.defaultHeight))
+                loadingMoreView?.frame = frame
+                loadingMoreView!.startAnimating()
+                
+                // Code to load more results
+                loadDataOnPage()
+            }
         }
     }
     
