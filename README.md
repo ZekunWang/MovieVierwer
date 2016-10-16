@@ -1,6 +1,6 @@
-# Project 1 - *MovieVierwer*
+# Project 1 - *MovieViewer*
 
-**MovieVierwer** is a movies app using the [The Movie Database API](http://docs.themoviedb.apiary.io/#).
+**MovieViewer** is a movies app using the [The Movie Database API](http://docs.themoviedb.apiary.io/#).
 
 Submitted by: **Zekun Wang**
 
@@ -40,7 +40,7 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-![Video Walkthrough](MovieVierwer_v1.gif)
+![Video Walkthrough](MovieViewer_v1.gif)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
