@@ -33,6 +33,8 @@ The following **additional** features are implemented:
 - [x] Able to play trailer video in detail page
 - [x] Animation on switching view type and showing error message
 - [x] Control collection view with UICollectionViewFlowLayout
+- [x] Configurate auto layout
+- [x] Create app icon
 
 ## Video Walkthrough
 
@@ -44,7 +46,12 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
 
-Describe any challenges encountered while building the app.
+Describe any challenges encountered while building the app:
+
+1. UI polish
+2. Control collection view layout
+3. Implementation of tab bar
+4. Configuration of auto layout
 
 ## License
 
