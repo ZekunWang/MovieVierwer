@@ -40,7 +40,6 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         isList = defaults.bool(forKey: MoviesViewController.VIEW_KEY)
         
         showViews(duration: 0)
-        loadDataOnPage()
     }
     
     override func viewDidLoad() {
@@ -95,7 +94,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         flowLayout.minimumLineSpacing = 10
         self.collectionView.collectionViewLayout = flowLayout
         
-        rawMovies = [Movie]()
+        refreshData()
     }
     
     func refreshData() {
@@ -329,6 +328,8 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                     cell.posterImageView.image = image
                 }
                 }, failure: nil)
+        } else {
+            cell.posterImageView.image = UIImage(named: "default_poster_image")
         }
         
         cell.titleLabel.text = movie.title

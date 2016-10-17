@@ -38,6 +38,8 @@ class MovieCell: UITableViewCell {
                         self.posterImageView.image = image
                     }
                     }, failure: nil)
+            } else {
+                posterImageView.image = UIImage(named: "default_poster_image")
             }
             
             titleLabel.text = movie.title

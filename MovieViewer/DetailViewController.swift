@@ -29,6 +29,12 @@ class DetailViewController: UIViewController, UICollectionViewDataSource, UIColl
     @IBOutlet var castCollectionView: UICollectionView!
     @IBOutlet var crewCollectionView: UICollectionView!
     
+    @IBOutlet var castNotAvailableLabel: UILabel!
+    @IBOutlet var crewNotAvailableLabel: UILabel!
+    
+    @IBOutlet var backdropImageHeight: NSLayoutConstraint!
+    @IBOutlet var titleTopToBackdropImage: NSLayoutConstraint!
+    
     var movie: Movie!
     var cast: [Person]?
     var crew: [Person]?
@@ -40,6 +46,8 @@ class DetailViewController: UIViewController, UICollectionViewDataSource, UIColl
         if let posterPath = movie.posterPath {
             let posterURL = URL(string: AppConstants.imageUrlW45 + posterPath)
             posterImageView.setImageWith(posterURL!)
+        } else {
+            posterImageView.image = UIImage(named: "default_poster_image")
         }
         
         castCollectionView.dataSource = self
@@ -57,9 +65,12 @@ class DetailViewController: UIViewController, UICollectionViewDataSource, UIColl
         castCollectionView.backgroundColor = transparentBackgroundColor
         crewCollectionView.backgroundColor = transparentBackgroundColor
         
-        if let packdropPath = movie.backdropPath {
-            let posterURL = URL(string: AppConstants.imageUrlW342 + packdropPath)
+        if let backdropPath = movie.backdropPath {
+            let posterURL = URL(string: AppConstants.imageUrlW342 + backdropPath)
             backdropImageView.setImageWith(posterURL!)
+        } else {
+            backdropImageHeight.constant = 0
+            titleTopToBackdropImage.constant = 0
         }
         
         titleLabel.text = movie.title
@@ -126,9 +137,21 @@ class DetailViewController: UIViewController, UICollectionViewDataSource, UIColl
                         let rawCrewDictionaries = responseDictionary["crew"] as? [NSDictionary]
                         
                         self.cast = Person.mapFromCastArray(dictionaries: rawCastDictionaries!)
-                        self.castCollectionView.reloadData()
+                        if (self.cast?.count == 0) {
+                            self.castNotAvailableLabel.isHidden = false
+                            self.castCollectionView.isHidden = true
+                        } else {
+                            self.castNotAvailableLabel.isHidden = true
+                            self.castCollectionView.reloadData()
+                        }
                         self.crew = Person.mapFromCrewArray(dictionaries: rawCrewDictionaries!)
-                        self.crewCollectionView.reloadData()
+                        if (self.crew?.count == 0) {
+                            self.crewNotAvailableLabel.isHidden = false
+                            self.crewCollectionView.isHidden = true
+                        } else {
+                            self.crewNotAvailableLabel.isHidden = true
+                            self.crewCollectionView.reloadData()
+                        }
                         
                         print("cast: \(rawCastDictionaries)")
                         print("crew: \(rawCrewDictionaries)")
@@ -161,6 +184,7 @@ class DetailViewController: UIViewController, UICollectionViewDataSource, UIColl
                         print("video data: \(responseDictionary)")
                         let rawVideos = responseDictionary["results"] as? [NSDictionary]
                         if rawVideos?.count == 0 {
+                            self.playerView.isHidden = true
                             return
                         }
                         let videoKey = rawVideos?[0]["key"] as? String

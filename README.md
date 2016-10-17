@@ -37,6 +37,7 @@ The following **additional** features are implemented:
 - [x] Configurate auto layout
 - [x] Create app icon
 - [x] Infinite scrolling
+- [x] Handle cases like no poster, no backdrop, no video, no cast and no crew
 
 ## Video Walkthrough
 
