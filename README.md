@@ -27,6 +27,7 @@ The following **optional** features are implemented:
 The following **additional** features are implemented:
 
 - [x] Remember selected view mode
+- [x] Make selected view mode consistant between tabs
 - [x] Dynamic table view cell height
 - [x] Dynamic height of movie title and overview in detail page
 - [x] Show cast and crew in detail page

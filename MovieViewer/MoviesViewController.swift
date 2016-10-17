@@ -33,6 +33,16 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     var collectionRefreshControl: UIRefreshControl!
     var loadingMoreView:InfiniteScrollActivityView?
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        let defaults = UserDefaults.standard
+        isList = defaults.bool(forKey: MoviesViewController.VIEW_KEY)
+        
+        showViews(duration: 0)
+        loadDataOnPage()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -56,11 +66,6 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         
         errorView.alpha = 0
         collectionView.alpha = 0
-        
-        let defaults = UserDefaults.standard
-        isList = defaults.bool(forKey: MoviesViewController.VIEW_KEY)
-        
-        showViews(duration: 0)
         
         // Initialize a UIRefreshControl
         tableRefreshControl = UIRefreshControl()
@@ -90,7 +95,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         flowLayout.minimumLineSpacing = 10
         self.collectionView.collectionViewLayout = flowLayout
         
-        refreshData()
+        rawMovies = [Movie]()
     }
     
     func refreshData() {
@@ -265,39 +270,31 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
         let cell = tableView.cellForRow(at: indexPath) as!  MovieCell
         
-        print("table view will select")
         cell.backgroundView = self.backgroundView
+        
         return indexPath
     }
     
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let cell = tableView.cellForRow(at: indexPath) as!  MovieCell
-        print("table view did selected")
         cell.backgroundView = nil
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell", for: indexPath) as! MovieCell
-        
-        print("table view: " + String(indexPath.row))
         let movie = movies![indexPath.row]
         
         cell.movie = movie
-        
         cell.selectedBackgroundView = backgroundView
-        
-        print("row \(indexPath.row)")
 
-//        let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
-//        cell.titleLabel.text = "hello"
         return cell
     }
     
     // MARK: - UICollectionViewDelegate
     func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
         let cell = collectionView.cellForItem(at: indexPath) as!  MovieCollectionViewCell
-        print("collection view will select")
+        
         cell.backgroundView = self.backgroundView
         
         return true
@@ -306,32 +303,29 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let cell = collectionView.cellForItem(at: indexPath) as!  MovieCollectionViewCell
         
-        print("collection view did selected")
         cell.backgroundView = nil
     }
     
     // MARK: - UICollectionViewDataSource
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "MovieCollectionViewCell", for: indexPath) as! MovieCollectionViewCell
-        print("collection view: " + String(indexPath.row))
         let movie = movies![indexPath.row]
         
-        let baseUrl = "https://image.tmdb.org/t/p/w342"
         if let posterPath = movie.posterPath {
-            let posterURL = URL(string: baseUrl + posterPath)
+            let posterURL = URL(string: AppConstants.imageUrlW342 + posterPath)
             let posterURLRequest = URLRequest(url: posterURL!)
             cell.posterImageView.setImageWith(posterURLRequest, placeholderImage: nil, success: { (imageRequest, imageResponse, image) -> Void in
                 
                 // imageResponse will be nil if the image is cached
                 if imageResponse != nil {
-                    print("Image was NOT cached, fade in image")
+                    //print("Image was NOT cached, fade in image")
                     cell.posterImageView.alpha = 0
                     cell.posterImageView.image = image
                     UIView.animate(withDuration: 0.3, animations: { () -> Void in
                         cell.posterImageView.alpha = 1.0
                     })
                 } else {
-                    print("Image was cached so just update the image")
+                    //print("Image was cached so just update the image")
                     cell.posterImageView.image = image
                 }
                 }, failure: nil)
@@ -358,7 +352,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         let detailViewController = segue.destination as! DetailViewController
         detailViewController.movie = movie
         
-        print("prepare for segue called")
+        //print("prepare for segue called")
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
     }
